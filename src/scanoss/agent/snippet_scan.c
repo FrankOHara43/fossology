@@ -99,9 +99,16 @@ FILE *openFileByKey(long pFileKey)
 int getLicenseId(unsigned char *name)
 {
   PGresult *result;
-  char sqlbuf[500];
-  sprintf(sqlbuf, "select lr.rf_pk from license_ref lr where lr.rf_shortname like '%s';", name);
-  result = PQexec(db_conn, sqlbuf);
+  const char *sqlbuf = "select lr.rf_pk from license_ref lr where lr.rf_shortname like $1;";
+  const char *paramValues[1];
+
+  if (name == NULL)
+  {
+    return -1;
+  }
+
+  paramValues[0] = (const char *)name;
+  result = PQexecParams(db_conn, sqlbuf, 1, NULL, paramValues, NULL, NULL, 0);
 
   if (fo_checkPQresult(db_conn, result, sqlbuf, __FILE__, __LINE__))
   {
